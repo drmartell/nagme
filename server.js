@@ -6,6 +6,8 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const client = require('./lib/client');
+
+const Cron = require('cron').CronJob;
 // Initiate database connection
 // client.connect();
 
@@ -46,6 +48,17 @@ app.use('/api/auth', authRoutes);
 
 // everything that starts with "/api" below here requires an auth token!
 app.use('/api', ensureAuth);
+
+// Cron
+new Cron('*/10 * * * * *', () => {
+    console.log('running a cron task');
+}, null, true, 'America/Los_Angeles');
+
+// cron.schedule('10 * * * *', () => {
+//     console.log('running a task every minute');
+// });
+
+app.listen('3128');
 
 // API Routes
 
