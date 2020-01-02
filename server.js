@@ -206,11 +206,11 @@ app.get('/api/complete/:id', async(req, res) => {
 });
 
 // Cron to find and send nags every five minutes
-new Cron('0 0/5 0 ? * * *', sendNags, null, true, 'America/Los_Angeles');
+new Cron('0 0/5 0 * * *', sendNags, null, true, 'America/Los_Angeles');
 // Cron to reset recurring nags at midnight
-new Cron('0 0 0 ? * * *', updateRecurNags, null, true, 'America/Los_Angeles');
+new Cron('0 0 0 * * *', updateRecurNags, null, true, 'America/Los_Angeles');
 // Cron for general nag to take your umbrella for your commute at 7:45am
-new Cron('0 45 7 ? * *', umbrellaCheck, null, true, 'America/Los_Angeles');
+new Cron('0 45 7 * * *', umbrellaCheck, null, true, 'America/Los_Angeles');
 //new Cron('0 45 20 * * *', umbrellaCheck, null, true, 'America/Los_Angeles');
 
 // address Phusion settings re: multiple listen statements
