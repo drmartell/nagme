@@ -1,47 +1,48 @@
-// address Phusion settings re: multiple listen statements
-// https://www.phusionpassenger.com/library/indepth/nodejs/reverse_port_binding.html
-if (typeof(PhusionPassenger) !== 'undefined') {
-    PhusionPassenger.configure({ autoInstall: false });
-}
-
 // Load Environment Variables from the .env file
 require('dotenv').config();
 
+// address Phusion settings re: multiple listen statements
+// https://www.phusionpassenger.com/library/indepth/nodejs/reverse_port_binding.html
+if(typeof(PhusionPassenger) !== 'undefined')
+    PhusionPassenger.configure({ autoInstall: false }); // eslint-disable-line
+
 // Application Dependencies
-const express = require('express');
-const cors = require('cors');
-const morgan = require('morgan');
-const client = require('./lib/client');
-const Cron = require('cron').CronJob;
-const handleNag = require('./cron/handle-nags');
-const sendNags = handleNag.sendNags;
-const updateRecurNags = handleNag.updateRecurNags;
-const umbrellaCheck = handleNag.umbrellaCheck;
-const { getIdString } = require('./node-utils/getIdString');
+const
+  express = require('express'),
+  cors = require('cors'),
+  morgan = require('morgan'),
+  client = require('./lib/client'),
+  Cron = require('cron').CronJob,
+  handleNag = require('./cron/handle-nags'),
+  sendNags = handleNag.sendNags,
+  updateRecurNags = handleNag.updateRecurNags,
+  umbrellaCheck = handleNag.umbrellaCheck,
+  { getIdString } = require('./node-utils/getIdString');
 
 // Auth
-const ensureAuth = require('./lib/auth/ensure-auth');
-const createAuthRoutes = require('./lib/auth/create-auth-routes');
-const authRoutes = createAuthRoutes({
+const
+  ensureAuth = require('./lib/auth/ensure-auth'),
+  createAuthRoutes = require('./lib/auth/create-auth-routes'),
+  authRoutes = createAuthRoutes({
     selectUser(email) {
-        return client.query(`
+      return client.query(`
             SELECT id, email, password_hash, display_name as "displayName" 
             FROM users
             WHERE email = $1;
         `,
-        [email]
-        ).then(result => result.rows[0]);
+      [email]
+      ).then(result => result.rows[0]);
     },
     insertUser(user, hash) {
-        return client.query(`
+      return client.query(`
             INSERT into users (push_api_key, email, password_hash, display_name)
             VALUES ($1, $2, $3, $4)
             RETURNING id, push_api_key as "pushApiKey", email, display_name as "displayName";
         `,
-        [user.pushApiKey, user.email, hash, user.displayName]
-        ).then(result => result.rows[0]);
+      [user.pushApiKey, user.email, hash, user.displayName]
+      ).then(result => result.rows[0]);
     }
-});
+  });
 // Application Setup
 const app = express();
 const PORT = process.env.PORT;
@@ -58,14 +59,14 @@ app.use('/api', ensureAuth);
 
 // API Routes
 const logError = (res, err) => {
-    console.log(err); // eslint-disable-line no-console
-    res.status(500).json({ error: err.message || err });
+  console.log(err); // eslint-disable-line no-console
+  res.status(500).json({ error: err.message || err });
 };
 
 // *** NAGS ***
 app.get('/api/nags', async(req, res) => {
-    try {
-        const result = await client.query(`
+  try {
+    const result = await client.query(`
             SELECT
             id,
             task,
@@ -89,18 +90,18 @@ app.get('/api/nags', async(req, res) => {
             FROM nags
             WHERE user_id = $1;
             `,
-        [req.userId]);
-        res.json(result.rows);
-    }
-    catch (err) {
-        logError(res, err);
-    }
+    [req.userId]);
+    res.json(result.rows);
+  }
+  catch(err) {
+    logError(res, err);
+  }
 });
 
 app.post('/api/nags', async(req, res) => {
-    const nag = req.body;
-    try {
-        const result = await client.query(`
+  const nag = req.body;
+  try {
+    const result = await client.query(`
         INSERT INTO nags (
             task,
             notes,
@@ -125,84 +126,84 @@ app.post('/api/nags', async(req, res) => {
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
         RETURNING *;
     `,
-        [nag.task, nag.notes, nag.startTime,
-            nag.endTime === '' ? null : nag.endTime,
-            nag.interval,
-            nag.minutesAfterHour === '' ? -1 : nag.minutesAfterHour,
-            nag.snoozed, nag.period,
-            nag.mon, nag.tue, nag.wed, nag.thu, nag.fri, nag.sat, nag.sun,
-            nag.recurs, nag.complete,
-            req.userId, getIdString(30)]);
-        res.json(result.rows[0]);
-    }
-    catch (err) {
-        logError(res, err);
-    }
+    [nag.task, nag.notes, nag.startTime,
+      nag.endTime === '' ? null : nag.endTime,
+      nag.interval,
+      nag.minutesAfterHour === '' ? -1 : nag.minutesAfterHour,
+      nag.snoozed, nag.period,
+      nag.mon, nag.tue, nag.wed, nag.thu, nag.fri, nag.sat, nag.sun,
+      nag.recurs, nag.complete,
+      req.userId, getIdString(30)]);
+    res.json(result.rows[0]);
+  }
+  catch(err) {
+    logError(res, err);
+  }
 });
 
 app.get('/api/nags/:id', async(req, res) => {
-    const id = req.params.id;
-    try {
-        const result = await client.query(`
+  const id = req.params.id;
+  try {
+    const result = await client.query(`
             SELECT * FROM nags
             WHERE id = $1;
         `, [id]);
      
-        res.json(result.rows);
-    }
-    catch (err) {
-        logError(res, err);
-    }
+    res.json(result.rows);
+  }
+  catch(err) {
+    logError(res, err);
+  }
 });
 
 app.delete('/api/nags/:id', async(req, res) => {
-    const id = req.params.id;
-    try {
-        const result = await client.query(`
+  const id = req.params.id;
+  try {
+    const result = await client.query(`
             DELETE FROM nags
             WHERE id = $1
             RETURNING *;
         `, [id]);
         
-        res.json(result.rows[0]);
-    }
-    catch (err) {
-        logError(res, err);
-    }
+    res.json(result.rows[0]);
+  }
+  catch(err) {
+    logError(res, err);
+  }
 });
 
 app.get('/api/delete/:id', async(req, res) => {
-    const id = req.params.id;
-    try {
-        const result = await client.query(`
+  const id = req.params.id;
+  try {
+    const result = await client.query(`
             DELETE FROM nags
             WHERE id = $1
             RETURNING *;
         `, [id]);
         
-        res.json(result.rows[0]);
-    }
-    catch (err) {
-        logError(res, err);
-    }
+    res.json(result.rows[0]);
+  }
+  catch(err) {
+    logError(res, err);
+  }
 });
 
 app.get('/api/complete/:id', async(req, res) => {
-    const id = req.params.id;
-    try {
-        const result = await client.query(`
+  const id = req.params.id;
+  try {
+    const result = await client.query(`
             UPDATE nags
             SET complete = TRUE
             WHERE id = $1
             RETURNING *;
         `, [id]);
         
-        res.json(result.rows[0]);
-        res.send('Marked Complete');
-    }
-    catch (err) {
-        logError(res, err);
-    }
+    res.json(result.rows[0]);
+    res.send('Marked Complete');
+  }
+  catch(err) {
+    logError(res, err);
+  }
 });
 
 // Cron to find and send nags every five minutes
@@ -216,20 +217,15 @@ new Cron('0 45 7 * * *', umbrellaCheck, null, true, 'America/Los_Angeles');
 // address Phusion settings re: multiple listen statements
 // https://www.phusionpassenger.com/library/indepth/nodejs/reverse_port_binding.html
 // start UI server
-if (typeof(PhusionPassenger) !== 'undefined') {
-    app.listen('passenger');
+if(typeof(PhusionPassenger) !== 'undefined') {
+  app.listen('passenger');
 } else {
-    app.listen(PORT, () => {
-        console.log('server running on PORT', PORT); // eslint-disable-line no-console
-    });
+  app.listen(PORT, () => {
+    console.log('server running on PORT', PORT); // eslint-disable-line no-console
+  });
 }
 
 // listen for cron
 app.listen('3128', () => {
-    console.log('cron listening on 3128'); // eslint-disable-line no-console
+  console.log('cron listening on 3128'); // eslint-disable-line no-console
 });
-
-// // Start the server
-// app.listen(PORT, () => {
-//     console.log('server running on PORT', PORT);
-// });
