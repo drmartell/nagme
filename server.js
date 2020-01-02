@@ -1,3 +1,9 @@
+// address Phusion settings re: multiple listen statements
+// https://www.phusionpassenger.com/library/indepth/nodejs/reverse_port_binding.html
+if (typeof(PhusionPassenger) !== 'undefined') {
+    PhusionPassenger.configure({ autoInstall: false });
+}
+
 // Load Environment Variables from the .env file
 require('dotenv').config();
 
@@ -52,13 +58,12 @@ app.use('/api', ensureAuth);
 
 // API Routes
 const logError = (res, err) => {
-    console.log(err);
+    console.log(err); // eslint-disable-line no-console
     res.status(500).json({ error: err.message || err });
 };
 
 // *** NAGS ***
 app.get('/api/nags', async(req, res) => {
-    console.log('getting nags');
     try {
         const result = await client.query(`
             SELECT
@@ -200,20 +205,31 @@ app.get('/api/complete/:id', async(req, res) => {
     }
 });
 
-// Cron to find and send nags
-new Cron('* * * * *', sendNags, null, true, 'America/Los_Angeles');
-// Cron to reset recurring nags one second after midnight
-new Cron('1 0 0 * * *', updateRecurNags, null, true, 'America/Los_Angeles');
-// Cron for general nag to take your umbrella for your commute
-new Cron('0 45 7 * * *', umbrellaCheck, null, true, 'America/Los_Angeles');
+// Cron to find and send nags every five minutes
+new Cron('0 0/5 0 ? * * *', sendNags, null, true, 'America/Los_Angeles');
+// Cron to reset recurring nags at midnight
+new Cron('0 0 0 ? * * *', updateRecurNags, null, true, 'America/Los_Angeles');
+// Cron for general nag to take your umbrella for your commute at 7:45am
+new Cron('0 45 7 ? * *', umbrellaCheck, null, true, 'America/Los_Angeles');
 //new Cron('0 45 20 * * *', umbrellaCheck, null, true, 'America/Los_Angeles');
+
+// address Phusion settings re: multiple listen statements
+// https://www.phusionpassenger.com/library/indepth/nodejs/reverse_port_binding.html
+// start UI server
+if (typeof(PhusionPassenger) !== 'undefined') {
+    app.listen('passenger');
+} else {
+    app.listen(PORT, () => {
+        console.log('server running on PORT', PORT); // eslint-disable-line no-console
+    });
+}
 
 // listen for cron
 app.listen('3128', () => {
-    console.log('cron listening on 3128');
+    console.log('cron listening on 3128'); // eslint-disable-line no-console
 });
 
-// Start the server
-app.listen(PORT, () => {
-    console.log('server running on PORT', PORT);
-});
+// // Start the server
+// app.listen(PORT, () => {
+//     console.log('server running on PORT', PORT);
+// });
