@@ -1,25 +1,25 @@
 import Component from '../Component.js';
 class Header extends Component {
-    onRender(dom) {
-        if (localStorage.getItem('USER')) {
-            const user = JSON.parse(localStorage.getItem('USER'));
-            //USER.displayName
-            //const displayUserName = dom.querySelector('.logged-in-as');
-            //displayUserName.textContent = `Logged in as ${user.displayName}`;
+  onRender(dom) {
+    if(localStorage.getItem('USER')) {
+      const user = JSON.parse(localStorage.getItem('USER'));
+      //USER.displayName
+      //const displayUserName = dom.querySelector('.logged-in-as');
+      //displayUserName.textContent = `Logged in as ${user.displayName}`;
 
-            const listA = dom.querySelectorAll(`a[href="./list.html"]`);
-            listA[0].innerHTML = `${user.displayName}'s Nags`;
-            const button = dom.querySelector('.log-out');
-            button.classList.remove('hidden');
-            button.addEventListener('click', () => {
-                localStorage.removeItem('USER');
-                location = './';
-            }
-            );
-        }
+      const listA = dom.querySelectorAll('a[href="./list.html"]');
+      listA[0].innerHTML = `${user.displayName}'s Nags`;
+      const button = dom.querySelector('.log-out');
+      button.classList.remove('hidden');
+      button.addEventListener('click', () => {
+        localStorage.removeItem('USER');
+        location = './';
+      }
+      );
     }
-    renderHTML() {
-        return /*html*/`
+  }
+  renderHTML() {
+    return /*html*/`
         <header class="header">
             <nav>
             <span class="logged-in-as"></span>
@@ -33,6 +33,6 @@ class Header extends Component {
             </div>
         </header>
         `;
-    }
+  }
 }
 export default Header;
