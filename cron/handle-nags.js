@@ -127,7 +127,6 @@ const sendNags = async() => {
 };
 
 const updateRecurNags = async() => {
-  console.log('updateRecurNags'); 
   try {
     const result = await client.query(`
             UPDATE nags 

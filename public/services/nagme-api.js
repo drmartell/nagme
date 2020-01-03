@@ -5,14 +5,12 @@ const user = JSON.parse(localStorage.getItem('USER'));
 const token = user && user.token;
 
 // redirect to home page if not logged in and not on home page
-if(!token && !(location.pathname === '/' || location.pathname === '/index.html')) {
+if(!token && !(location.pathname === '/' || location.pathname === '/index.html'))
   location = '/';
-}
 
 // redirect to list if logged in
-if(token && (location.pathname === '/' || location.pathname === '/index.html')) {
+if(token && (location.pathname === '/' || location.pathname === '/index.html'))
   location = '/list.html';
-}
 
 const fetchWithError = async(url, options) => {
   if(token) {

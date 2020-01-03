@@ -2,60 +2,58 @@ import Component from '../Component.js';
 
 class AddNag extends Component {
 
-    onRender(form) {
-        const { onAdd, onRemove, loadNag } = this.props;
-        console.log('loadNag', loadNag);
-        const myTextArea = form.querySelector('textarea');
-        loadNag && (myTextArea.value = loadNag.notes);
+  onRender(form) {
+    const { onAdd, onRemove, loadNag } = this.props;
+    const myTextArea = form.querySelector('textarea');
+    loadNag && (myTextArea.value = loadNag.notes);
 
-        form.addEventListener('submit', async event => {
-            event.preventDefault();
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
 
-            const formData = new FormData(form);//add or update
+      const formData = new FormData(form);//add or update
 
-            const nag = {
-                id: formData.get('hidden-id'),
-                task: formData.get('nag-name'),
-                notes: formData.get('notes'),
-                startTime: formData.get('start-time'),
-                endTime: formData.get('end-time'),
-                interval: parseInt(formData.get('interval')),
-                minutesAfterHour: formData.get('minutes-after-hour') !== '' ? parseInt(formData.get('minutes-after-hour')) : -1,
-                mon: !!formData.get('mon'),
-                tue: !!formData.get('tue'),
-                wed: !!formData.get('wed'),
-                thu: !!formData.get('thu'),
-                fri: !!formData.get('fri'),
-                sat: !!formData.get('sat'),
-                sun: !!formData.get('sun'),
-                recurs: form.elements['recurs'][0].checked || false,
-                period: 'm',
-            };
-            console.log('formNag', nag);
-            try {
-                if (nag.id) {
-                    await onRemove(nag);
-                }
+      const nag = {
+        id: formData.get('hidden-id'),
+        task: formData.get('nag-name'),
+        notes: formData.get('notes'),
+        startTime: formData.get('start-time'),
+        endTime: formData.get('end-time'),
+        interval: parseInt(formData.get('interval')),
+        minutesAfterHour: formData.get('minutes-after-hour') !== '' ? parseInt(formData.get('minutes-after-hour')) : -1,
+        mon: !!formData.get('mon'),
+        tue: !!formData.get('tue'),
+        wed: !!formData.get('wed'),
+        thu: !!formData.get('thu'),
+        fri: !!formData.get('fri'),
+        sat: !!formData.get('sat'),
+        sun: !!formData.get('sun'),
+        recurs: form.elements['recurs'][0].checked || false,
+        period: 'm',
+      };
+      try {
+        if(nag.id) {
+          await onRemove(nag);
+        }
 
-                await onAdd(nag);
+        await onAdd(nag);
 
-                document.activeElement.blur();
-            }
-            catch (err) {
-                // App will show error, this catch keeps form from clearing
-            }
-            finally {
-                this.update({ loadNag: {
-                    task: '',
-                    notes: '',
-                } });
-            }
-        });
-    }
+        document.activeElement.blur();
+      }
+      catch(err) {
+        // App will show error, this catch keeps form from clearing
+      }
+      finally {
+        this.update({ loadNag: {
+          task: '',
+          notes: '',
+        } });
+      }
+    });
+  }
 
-    renderHTML() {
-        const loadNag = this.props.loadNag; 
-        return /*html*/`
+  renderHTML() {
+    const loadNag = this.props.loadNag; 
+    return /*html*/`
             <form class="add-nag-form">
                 <div class = "add-nag-div">
                     <p>
@@ -87,8 +85,7 @@ class AddNag extends Component {
                             type="time"
                             id="start-time"
                             name="start-time"
-                            value="${loadNag ? loadNag.startTime : '12:00:00'}"
-                            required>
+                            value="${loadNag ? loadNag.startTime : '00:00:00'}">
                     </p>
                     <p>
                         <label for="endTime">End Time</label>
@@ -152,7 +149,7 @@ class AddNag extends Component {
                 </div>
             </form>
         `;
-    }
+  }
 }
 
 export default AddNag;
