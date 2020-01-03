@@ -110,7 +110,7 @@ const sendNags = async() => {
   
   // combine simultaneous nags
   const messagesObj = nagsToSend.reduce((acc, cur) => {
-    const html = `${ cur.task }&nbsp;&nbsp;<a href="https://nagmeapp.com/api/complete/${cur.completeId}">☑</a>\n\n`;
+    const html = `${ cur.task }  <a href="https://nagmeapp.com/api/complete/${cur.completeId}">☑</a>\n\n`;
     acc[cur.pushApiKey] ? 
       acc[cur.pushApiKey] += html :
       acc[cur.pushApiKey] = html;
