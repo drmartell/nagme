@@ -126,11 +126,14 @@ app.post('/api/nags', async(req, res) => {
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
         RETURNING *;
     `,
-    [nag.task, nag.notes, nag.startTime || '00:00:00',
+    [nag.task,
+      nag.notes,
+      nag.startTime ? nag.startTime : '00:00:00',
       nag.endTime === '' ? null : nag.endTime,
-      nag.interval || 5,
+      nag.interval ? nag.interval : 5,
       nag.minutesAfterHour === '' ? -1 : nag.minutesAfterHour,
-      nag.snoozed, nag.period,
+      nag.snoozed,
+      nag.period,
       nag.mon, nag.tue, nag.wed, nag.thu, nag.fri, nag.sat, nag.sun,
       nag.recurs, false,
       req.userId, getIdString(30)]);
@@ -207,6 +210,7 @@ app.get('/api/complete/:id', async(req, res) => {
 });
 
 // Cron to find and send nags every minute
+sendNags();
 new Cron('* * * * *', sendNags, null, true, 'America/Los_Angeles');
 // Cron to reset recurring nags at midnight
 new Cron('0 0 0 * * *', updateRecurNags, null, true, 'America/Los_Angeles');

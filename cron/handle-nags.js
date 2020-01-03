@@ -96,8 +96,8 @@ const isTimeForNag = (nag, dayNumsArr = [], snoozed = false) => {
 const sendNags = async() => {
   // console.log('sendNags');
   const allNags = await getAllNags();
+  console.log(moment().minutes());
   allNags.forEach(async nag => {
-    // console.log(JSON.stringify(nag));
     if(
       !nag.complete
       && nag.pushApiKey
@@ -106,7 +106,10 @@ const sendNags = async() => {
     )
     {
       try {
+        console.log('sending', JSON.stringify(nag), moment().minutes());
         const url = 'https://api.pushover.net/1/messages.json';
+        const message = `${ nag.task }
+https://nagmeapp.com/api/complete/${nag.completeId}`;
         return await fetchWithError(url, {
           method: 'POST',
           headers: {
@@ -115,7 +118,7 @@ const sendNags = async() => {
           body: JSON.stringify({
             token: process.env.PUSHOVER_TOKEN,
             user: nag.pushApiKey,
-            message: nag.task,
+            message,
             url: `https://nagmeapp.com/api/complete/${nag.completeId}`,
             url_title: 'CLICK HERE MARK COMPLETE'
           })        
