@@ -110,7 +110,7 @@ const sendNags = async() => {
   
   // combine simultaneous nags
   const messagesObj = nagsToSend.reduce((acc, cur) => {
-    const html = `${ cur.task }  <a href="https://nagmeapp.com/api/complete/${cur.completeId}">☑</a>\n\n`;
+    const html = `${ cur.task }  <a href="https://nagmeapp.com/api/${ cur.recurs ? 'complete' : 'deleted'}/${cur.completeId}">☑</a>\n\n`;
     acc[cur.pushApiKey] ? 
       acc[cur.pushApiKey] += html :
       acc[cur.pushApiKey] = html;
@@ -201,7 +201,7 @@ const umbrellaCheck = async() => {
               token: process.env.PUSHOVER_TOKEN,
               user: nag.push_api_key,
               message: 'Greater Than 40% chance of rain',
-              url: `https://nagmeapp.com/api/delete/${nag.user_id}`,
+              url: `https://nagmeapp.com/api/complete/${nag.user_id}`,
               url_title: 'CLICK HERE MARK COMPLETE'
             })        
           });
