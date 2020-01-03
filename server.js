@@ -128,7 +128,7 @@ app.post('/api/nags', async(req, res) => {
     `,
     [nag.task, nag.notes, nag.startTime || '00:00:00',
       nag.endTime === '' ? null : nag.endTime,
-      nag.interval,
+      nag.interval || 5,
       nag.minutesAfterHour === '' ? -1 : nag.minutesAfterHour,
       nag.snoozed, nag.period,
       nag.mon, nag.tue, nag.wed, nag.thu, nag.fri, nag.sat, nag.sun,

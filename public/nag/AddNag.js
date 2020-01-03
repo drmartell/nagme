@@ -103,10 +103,9 @@ class AddNag extends Component {
                             type="number"
                             id="interval"
                             name="interval"
-                            min="1"
+                            min="5"
                             max="720"
-                            value="${loadNag ? loadNag.interval : ''}"
-                            required>
+                            value="${loadNag ? loadNag.interval : ''}">
 
                     </p>
                     <p>
