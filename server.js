@@ -206,8 +206,8 @@ app.get('/api/complete/:id', async(req, res) => {
   }
 });
 
-// Cron to find and send nags every five minutes
-new Cron('0 0/5 0 * * *', sendNags, null, true, 'America/Los_Angeles');
+// Cron to find and send nags every minute
+new Cron('* * * * *', sendNags, null, true, 'America/Los_Angeles');
 // Cron to reset recurring nags at midnight
 new Cron('0 0 0 * * *', updateRecurNags, null, true, 'America/Los_Angeles');
 // Cron for general nag to take your umbrella for your commute at 7:45am
