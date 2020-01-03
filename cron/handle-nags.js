@@ -65,8 +65,8 @@ const isDayOfWeek = nag => {
 // https://stackoverflow.com/questions/1531093/how-do-i-get-the-current-date-in-javascript
 const timeDiff = timeStr => {
   const now = new Date();
+  // adjust to Pacific time
   now.setHours(now.getHours() - 1);
-  console.log(now);
   const dd = String(now.getDate()).padStart(2, '0');
   const mm = String(now.getMonth() + 1).padStart(2, '0'); //January is 0
   const yyyy = now.getFullYear();
@@ -99,35 +99,41 @@ const sendNags = async() => {
   // console.log('sendNags');
   const allNags = await getAllNags();
   console.log(moment().hours() + ':' + moment().minutes());
-  allNags.forEach(async nag => {
-    if(
-      !nag.complete
+  const nagsToSend = [];
+  allNags.forEach(nag => {
+    if(!nag.complete
       && nag.pushApiKey
       && nag.pushApiKey.length === 30
-      && isTimeForNag(nag)
-    )
-    {
-      try {
-        console.log('sending', JSON.stringify(nag), moment().minutes());
-        const url = 'https://api.pushover.net/1/messages.json';
-        const message = `${ nag.task }
-https://nagmeapp.com/api/complete/${nag.completeId}`;
-        return await fetchWithError(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            token: process.env.PUSHOVER_TOKEN,
-            user: nag.pushApiKey,
-            message,
-            url: `https://nagmeapp.com/api/complete/${nag.completeId}`,
-            url_title: 'CLICK HERE MARK COMPLETE'
-          })        
-        });
-      }
-      catch(err) { console.log('error ' + err); } // eslint-disable-line no-console
+      && isTimeForNag(nag))
+      nagsToSend.push(nag);
+  });
+  
+  // combine simultaneous nags
+  const messagesObj = nagsToSend.reduce((acc, cur) => {
+    const html = `${ cur.task }&nbsp;&nbsp;<a href="https://nagmeapp.com/api/complete/${cur.completeId}">☑</a>\n\n`;
+    acc[cur.pushApiKey] ? 
+      acc[cur.pushApiKey] += html :
+      acc[cur.pushApiKey] = html;
+    return acc;
+  }, {});
+
+  //WILL NEED FURTHER LOGIC ONCE RECEIVING DEVICES CAN BE TARGETED
+
+  Object.entries(messagesObj).forEach(async message => {
+    try {
+      const url = 'https://api.pushover.net/1/messages.json';
+      return await fetchWithError(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: process.env.PUSHOVER_TOKEN,
+          html: 1,
+          user: message[0],
+          message: message[1]
+        })        
+      });
     }
+    catch(err) { console.log('error ' + err); } // eslint-disable-line no-console
   });
 };
 
