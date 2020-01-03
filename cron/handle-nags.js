@@ -196,11 +196,12 @@ const umbrellaCheck = async() => {
             headers: {
               'Content-Type': 'application/json',
             },
+            //url: `https://nagmeapp.com/api/complete/${nag.user_id}`,
             body: JSON.stringify({
               token: process.env.PUSHOVER_TOKEN,
               user: nag.push_api_key,
               message: 'Greater Than 40% chance of rain',
-              url: `https://nagmeapp.com/api/complete/${nag.user_id}`,
+              url: `https://nagmeapp.com/api/delete/${nag.user_id}`,
               url_title: 'CLICK HERE MARK COMPLETE'
             })        
           });
