@@ -96,7 +96,7 @@ const isTimeForNag = (nag, dayNumsArr = [], snoozed = false) => {
 const sendNags = async() => {
   // console.log('sendNags');
   const allNags = await getAllNags();
-  console.log(moment().minutes());
+  console.log(moment().hours() + ':' + moment().minutes());
   allNags.forEach(async nag => {
     if(
       !nag.complete
