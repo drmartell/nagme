@@ -64,7 +64,7 @@ const isDayOfWeek = nag => {
 // https://stackoverflow.com/questions/11038252/how-can-i-calculate-the-difference-between-two-times-that-are-in-24-hour-format
 // https://stackoverflow.com/questions/1531093/how-do-i-get-the-current-date-in-javascript
 const timeDiff = timeStr => {
-  const now = new Date();
+  const now = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' });
   const dd = String(now.getDate()).padStart(2, '0');
   const mm = String(now.getMonth() + 1).padStart(2, '0'); //January is 0
   const yyyy = now.getFullYear();
