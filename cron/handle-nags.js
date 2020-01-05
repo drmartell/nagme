@@ -76,7 +76,17 @@ const timeDiff = timeStr => {
   return Math.floor((now - startTime) / 60000); //difference in minutes
 };
 
-const isTimeForNag = (nag, dayNumsArr = [], snoozed = false) => {
+const isTimeForNag = (nag, snoozed = false) => {
+  // console.log([
+  //   nag.mon && 1,
+  //   nag.tue && 2,
+  //   nag.wed && 3,
+  //   nag.thu && 4,
+  //   nag.fri && 5,
+  //   nag.sat && 6,
+  //   nag.sun && 7,
+  // ]);
+  // console.log(moment().isoWeekday());
   const minutesSinceStart = timeDiff(nag.startTime);
   const minutesTilEnd = -timeDiff(nag.endTime);
   return (                                                  // return true if:
@@ -86,7 +96,7 @@ const isTimeForNag = (nag, dayNumsArr = [], snoozed = false) => {
     && moment().minutes() % 5 === 0                        // only allow nags at most every 5 minutes
     //&& (nag.endTime && nowTime.isBefore(nag.endTime))   // and if there is an end time and we haven't exceeded it
     && (nag.endTime ? minutesTilEnd > 0 : true)           // and if there is an end time and we haven't exceeded it
-    && (dayNumsArr.length > 0 ? isDayOfWeek(nag) : true)       // and there are days selected and this is one of them
+    && isDayOfWeek(nag))                                  // and there are days selected and this is one of them
     && (
       minutesSinceStart === 0 ||
       minutesSinceStart % nag.interval === 0 ||         // and this is one of the regularly recurring time intervals of a requested nag
@@ -121,6 +131,7 @@ const sendNags = async() => {
 
   Object.entries(messagesObj).forEach(async message => {
     try {
+      console.log('sending');
       const url = 'https://api.pushover.net/1/messages.json';
       return await fetchWithError(url, {
         method: 'POST',
