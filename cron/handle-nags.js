@@ -48,8 +48,18 @@ const getAllNags = async() => {
 
 // 1-7 where 1 is Monday and 7 is Sunday
 // days are true by default
+// const dayOfWeekDict = {
+//   1: mon,
+//   2: tue,
+//   3: wed,
+//   4: thu,
+//   5: fri,
+//   6: sat,
+//   7: sun
+// };
+
 const isDayOfWeek = nag => {
-  [
+  const dayNums = [
     nag.mon && 1,
     nag.tue && 2,
     nag.wed && 3,
@@ -57,8 +67,9 @@ const isDayOfWeek = nag => {
     nag.fri && 5,
     nag.sat && 6,
     nag.sun && 7,
-  ]
-    .includes(moment().isoWeekday());
+  ];
+
+  dayNums.every(el => el) || dayNums.includes(moment().isoWeekday());
 };
 
 // https://stackoverflow.com/questions/11038252/how-can-i-calculate-the-difference-between-two-times-that-are-in-24-hour-format
@@ -96,7 +107,7 @@ const isTimeForNag = (nag, snoozed = false) => {
     && moment().minutes() % 5 === 0                        // only allow nags at most every 5 minutes
     //&& (nag.endTime && nowTime.isBefore(nag.endTime))   // and if there is an end time and we haven't exceeded it
     && (nag.endTime ? minutesTilEnd > 0 : true)           // and if there is an end time and we haven't exceeded it
-    && isDayOfWeek(nag))                                  // and there are days selected and this is one of them
+    && isDayOfWeek(nag)                                   // and there are days selected and this is one of them   
     && (
       minutesSinceStart === 0 ||
       minutesSinceStart % nag.interval === 0 ||         // and this is one of the regularly recurring time intervals of a requested nag
