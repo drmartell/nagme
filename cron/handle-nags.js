@@ -69,7 +69,7 @@ const isDayOfWeek = nag => {
     nag.sun && 7,
   ];
 
-  dayNums.every(el => el) || dayNums.includes(moment().isoWeekday());
+  return dayNums.every(el => el) || dayNums.includes(moment().isoWeekday());
 };
 
 // https://stackoverflow.com/questions/11038252/how-can-i-calculate-the-difference-between-two-times-that-are-in-24-hour-format
@@ -88,6 +88,7 @@ const timeDiff = timeStr => {
 };
 
 const isTimeForNag = (nag, snoozed = false) => {
+  console.log(nag);
   // console.log([
   //   nag.mon && 1,
   //   nag.tue && 2,
@@ -99,13 +100,14 @@ const isTimeForNag = (nag, snoozed = false) => {
   // ]);
   // console.log(moment().isoWeekday());
   const minutesSinceStart = timeDiff(nag.startTime);
+  console.log(minutesSinceStart);
   const minutesTilEnd = -timeDiff(nag.endTime);
+  console.log(minutesTilEnd);
+  console.log(isDayOfWeek(nag));
   return (                                                  // return true if:
     !snoozed                                              // nag is not snoozed
-    //nowTime.isAfter(nag.startTime) &&                   // and it is after start time
     && minutesSinceStart >= 0                              // and it is after start time
     && moment().minutes() % 5 === 0                        // only allow nags at most every 5 minutes
-    //&& (nag.endTime && nowTime.isBefore(nag.endTime))   // and if there is an end time and we haven't exceeded it
     && (nag.endTime ? minutesTilEnd > 0 : true)           // and if there is an end time and we haven't exceeded it
     && isDayOfWeek(nag)                                   // and there are days selected and this is one of them   
     && (
@@ -119,14 +121,16 @@ const isTimeForNag = (nag, snoozed = false) => {
 const sendNags = async() => {
   // console.log('sendNags');
   const allNags = await getAllNags();
-  console.log(moment().hours() + ':' + moment().minutes());
+  console.log('in send nags:', moment().hours() + ':' + moment().minutes());
   const nagsToSend = [];
   allNags.forEach(nag => {
     if(!nag.complete
       && nag.pushApiKey
       && nag.pushApiKey.length === 30
-      && isTimeForNag(nag))
+      //&& (console.log('checking isTimeForNag'))
+      && isTimeForNag(nag)) {
       nagsToSend.push(nag);
+    }
   });
   
   // combine simultaneous nags
@@ -233,6 +237,9 @@ const umbrellaCheck = async() => {
     });
   }
 };
-exports.umbrellaCheck = umbrellaCheck;
-exports.sendNags = sendNags;
-exports.updateRecurNags = updateRecurNags;
+
+module.exports = {
+  umbrellaCheck,
+  sendNags,
+  updateRecurNags
+};
