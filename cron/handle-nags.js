@@ -88,22 +88,12 @@ const timeDiff = timeStr => {
 };
 
 const isTimeForNag = (nag, snoozed = false) => {
-  console.log(nag);
-  // console.log([
-  //   nag.mon && 1,
-  //   nag.tue && 2,
-  //   nag.wed && 3,
-  //   nag.thu && 4,
-  //   nag.fri && 5,
-  //   nag.sat && 6,
-  //   nag.sun && 7,
-  // ]);
   // console.log(moment().isoWeekday());
   const minutesSinceStart = timeDiff(nag.startTime);
-  console.log(minutesSinceStart);
+  // console.log(minutesSinceStart);
   const minutesTilEnd = -timeDiff(nag.endTime);
-  console.log(minutesTilEnd);
-  console.log(isDayOfWeek(nag));
+  // console.log(minutesTilEnd);
+  // console.log(isDayOfWeek(nag));
   return (                                                  // return true if:
     !snoozed                                              // nag is not snoozed
     && minutesSinceStart >= 0                              // and it is after start time
@@ -121,7 +111,7 @@ const isTimeForNag = (nag, snoozed = false) => {
 const sendNags = async() => {
   // console.log('sendNags');
   const allNags = await getAllNags();
-  console.log('in send nags:', moment().hours() + ':' + moment().minutes());
+  // console.log('in send nags:', moment().hours() + ':' + moment().minutes());
   const nagsToSend = [];
   allNags.forEach(nag => {
     if(!nag.complete
@@ -146,7 +136,7 @@ const sendNags = async() => {
 
   Object.entries(messagesObj).forEach(async message => {
     try {
-      console.log('sending');
+      console.log('sending'); //eslint-disable-line no-console
       const url = 'https://api.pushover.net/1/messages.json';
       return await fetchWithError(url, {
         method: 'POST',

@@ -17,7 +17,9 @@ const
   sendNags = handleNag.sendNags,
   updateRecurNags = handleNag.updateRecurNags,
   umbrellaCheck = handleNag.umbrellaCheck,
-  { getIdString } = require('./node-utils/getIdString');
+  { getIdString } = require('./node-utils/getIdString'),
+  Cryptr = require('cryptr'),
+  cryptr = new Cryptr(process.env.CRYPTR_KEY);
 
 // Auth
 const
@@ -43,6 +45,7 @@ const
       ).then(result => result.rows[0]);
     }
   });
+
 // Application Setup
 const app = express();
 const PORT = process.env.PORT;
@@ -64,40 +67,6 @@ const logError = (res, err) => {
 };
 
 // *** NAGS ***
-app.get('/api/nags', async(req, res) => {
-  try {
-    const result = await client.query(`
-            SELECT
-            id,
-            task,
-            notes,
-            start_time AS "startTime",
-            end_time AS "endTime",
-            interval,
-            minutes_after_hour AS "minutesAfterHour",
-            snoozed,
-            period,
-            mon,
-            tue,
-            wed,
-            thu,
-            fri,
-            sat,
-            sun,
-            recurs,
-            complete,
-            id_string AS "idString"
-            FROM nags
-            WHERE user_id = $1;
-            `,
-    [req.userId]);
-    res.json(result.rows);
-  }
-  catch(err) {
-    logError(res, err);
-  }
-});
-
 app.post('/api/nags', async(req, res) => {
   const nag = req.body;
   try {
@@ -126,8 +95,8 @@ app.post('/api/nags', async(req, res) => {
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
         RETURNING *;
     `,
-    [nag.task,
-      nag.notes,
+    [cryptr.encrypt(nag.task),
+      cryptr.encrypt(nag.notes),
       nag.startTime ? nag.startTime : '00:00:00',
       nag.endTime === '' ? null : nag.endTime,
       nag.interval ? nag.interval : 5,
@@ -144,6 +113,43 @@ app.post('/api/nags', async(req, res) => {
   }
 });
 
+app.get('/api/nags', async(req, res) => {
+  try {
+    const result = await client.query(`
+            SELECT
+            id,
+            task,
+            notes,
+            start_time AS "startTime",
+            end_time AS "endTime",
+            interval,
+            minutes_after_hour AS "minutesAfterHour",
+            snoozed,
+            period,
+            mon,
+            tue,
+            wed,
+            thu,
+            fri,
+            sat,
+            sun,
+            recurs,
+            complete,
+            id_string AS "idString"
+            FROM nags
+            WHERE user_id = $1;
+            `,
+    [req.userId]);
+    const decryptedRows = result.rows.map(row =>
+      ({ ...row, task: cryptr.decrypt(row.task), notes: cryptr.encrypt(row.notes) }));
+    res.json(decryptedRows);
+  }
+  catch(err) {
+    logError(res, err);
+  }
+});
+
+
 app.get('/api/nags/:id', async(req, res) => {
   const id = req.params.id;
   try {
@@ -152,7 +158,8 @@ app.get('/api/nags/:id', async(req, res) => {
             WHERE id = $1;
         `, [id]);
      
-    res.json(result.rows);
+    //res.json(result.rows);
+    res.json({ ...result.rows[0], task: cryptr.decrypt(result.rows[0].task), notes: cryptr.encrypt(result.rows[0].notes) });
   }
   catch(err) {
     logError(res, err);
@@ -175,6 +182,8 @@ app.delete('/api/nags/:id', async(req, res) => {
   }
 });
 
+// Allow delete via GET for users to quickly remove
+// completed tasks by following a link
 app.get('/api/delete/:id', async(req, res) => {
   const id = req.params.id;
   try {
@@ -219,6 +228,7 @@ new Cron('0 45 7 * * *', umbrellaCheck, null, true, 'America/Los_Angeles');
 //new Cron('0 45 20 * * *', umbrellaCheck, null, true, 'America/Los_Angeles');
 
 // address Phusion settings re: multiple listen statements
+// this is specific to deployment on linux/cPanel/Phusion host
 // https://www.phusionpassenger.com/library/indepth/nodejs/reverse_port_binding.html
 // start UI server
 if(typeof(PhusionPassenger) !== 'undefined') {
