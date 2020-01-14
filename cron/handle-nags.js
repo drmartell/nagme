@@ -73,7 +73,7 @@ const isDayOfWeek = nag => {
     nag.sun && 7,
   ];
 
-  return dayNums.every(el => el === false) || dayNums.includes(moment().isoWeekday());
+  return dayNums.every(el => !el) || dayNums.includes(moment().isoWeekday());
 };
 
 // https://stackoverflow.com/questions/11038252/how-can-i-calculate-the-difference-between-two-times-that-are-in-24-hour-format
