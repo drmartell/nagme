@@ -106,7 +106,7 @@ app.post('/api/nags', async(req, res) => {
       nag.mon, nag.tue, nag.wed, nag.thu, nag.fri, nag.sat, nag.sun,
       nag.recurs, false,
       req.userId, getIdString(30)]);
-    res.json(result.rows[0]);
+    res.json({ ...result.rows[0], task: nag.task, notes: nag.notes });
   }
   catch(err) {
     logError(res, err);
@@ -141,7 +141,7 @@ app.get('/api/nags', async(req, res) => {
             `,
     [req.userId]);
     const decryptedRows = result.rows.map(row =>
-      ({ ...row, task: cryptr.decrypt(row.task), notes: cryptr.encrypt(row.notes) }));
+      ({ ...row, task: cryptr.decrypt(row.task), notes: cryptr.decrypt(row.notes) }));
     res.json(decryptedRows);
   }
   catch(err) {
@@ -159,7 +159,7 @@ app.get('/api/nags/:id', async(req, res) => {
         `, [id]);
      
     //res.json(result.rows);
-    res.json({ ...result.rows[0], task: cryptr.decrypt(result.rows[0].task), notes: cryptr.encrypt(result.rows[0].notes) });
+    res.json({ ...result.rows[0], task: cryptr.decrypt(result.rows[0].task), notes: cryptr.decrypt(result.rows[0].notes) });
   }
   catch(err) {
     logError(res, err);

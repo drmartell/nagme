@@ -11,7 +11,7 @@ class AddNag extends Component {
     form.addEventListener('submit', async event => {
       event.preventDefault();
 
-      const formData = new FormData(form);//add or update
+      const formData = new FormData(form); //add or update
 
       const nag = {
         id: formData.get('hidden-id'),
@@ -54,8 +54,12 @@ class AddNag extends Component {
 
   renderHTML() {
     const { loadNag } = this.props;
+
     let decryptedNag = loadNag;
-    if(loadNag.id) decryptedNag = getNagById(loadNag.id);
+    (async() => {
+      if(loadNag) decryptedNag = await getNagById(loadNag.id);
+    })();
+
     return /*html*/`
             <form class="add-nag-form">
                 <div class = "add-nag-div">

@@ -6,6 +6,9 @@ const fetch = require('node-fetch');
 const superagent = require('superagent');
 require('dotenv').config();
 
+const Cryptr = require('cryptr');
+const cryptr = new Cryptr(process.env.CRYPTR_KEY);
+
 const fetchWithError = async(url, options) => {
   const response = await fetch(url, options);
   const data = await response.json();
@@ -41,7 +44,8 @@ const getAllNags = async() => {
             FROM users JOIN nags
             ON users.id = nags.user_id;
         `,);
-    return result.rows;
+    return result.rows.map(row =>
+      ({ ...row, task: cryptr.decrypt(row.task), notes: cryptr.decrypt(row.notes) }));
   }
   catch(err) { console.log(err); } // eslint-disable-line no-console
 };
@@ -69,7 +73,7 @@ const isDayOfWeek = nag => {
     nag.sun && 7,
   ];
 
-  return dayNums.every(el => el) || dayNums.includes(moment().isoWeekday());
+  return dayNums.every(el => el === false) || dayNums.includes(moment().isoWeekday());
 };
 
 // https://stackoverflow.com/questions/11038252/how-can-i-calculate-the-difference-between-two-times-that-are-in-24-hour-format
@@ -88,12 +92,12 @@ const timeDiff = timeStr => {
 };
 
 const isTimeForNag = (nag, snoozed = false) => {
-  // console.log(moment().isoWeekday());
+  console.log('in isTimeForNag:', moment().hours() + ':' + moment().minutes());
   const minutesSinceStart = timeDiff(nag.startTime);
-  // console.log(minutesSinceStart);
-  const minutesTilEnd = -timeDiff(nag.endTime);
-  // console.log(minutesTilEnd);
-  // console.log(isDayOfWeek(nag));
+  console.log('minutesSinceStart', minutesSinceStart);
+  const minutesTilEnd = nag.endTime ? -timeDiff(nag.endTime) : 0;
+  console.log('minutesTilEnd', minutesTilEnd);
+  console.log('isDayOfWeek(nag)', isDayOfWeek(nag));
   return (                                                  // return true if:
     !snoozed                                              // nag is not snoozed
     && minutesSinceStart >= 0                              // and it is after start time
@@ -111,7 +115,7 @@ const isTimeForNag = (nag, snoozed = false) => {
 const sendNags = async() => {
   // console.log('sendNags');
   const allNags = await getAllNags();
-  // console.log('in send nags:', moment().hours() + ':' + moment().minutes());
+  console.log('in send nags:', moment().hours() + ':' + moment().minutes());
   const nagsToSend = [];
   allNags.forEach(nag => {
     if(!nag.complete
@@ -125,7 +129,7 @@ const sendNags = async() => {
   
   // combine simultaneous nags
   const messagesObj = nagsToSend.reduce((acc, cur) => {
-    const html = `${ cur.task }  <a href="https://nagmeapp.com/api/${ cur.recurs ? 'complete' : 'delete'}/${cur.completeId}">☑</a>\n\n`;
+    const html = `${cur.task}: ${cur.notes}  <a href="https://nagmeapp.com/api/${cur.recurs ? 'complete' : 'delete'}/${cur.completeId}">☑</a>\n\n`;
     acc[cur.pushApiKey] ? 
       acc[cur.pushApiKey] += html :
       acc[cur.pushApiKey] = html;
@@ -146,7 +150,7 @@ const sendNags = async() => {
           html: 1,
           user: message[0],
           message: message[1]
-        })        
+        })
       });
     }
     catch(err) { console.log('error ' + err); } // eslint-disable-line no-console

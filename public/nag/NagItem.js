@@ -38,8 +38,10 @@ class NagItem extends Component {
 
   renderHTML() {
     const nag = this.props.nag;
+
     let decryptedNag = nag;
-    decryptedNag = getNagById(nag.id);
+    (async() => decryptedNag = await getNagById(nag.id))();
+    console.log('decryptedNag', decryptedNag);
     return /*html*/`
             <li id="${nag.id}">
                 <p>
