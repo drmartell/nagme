@@ -73,7 +73,7 @@ const isDayOfWeek = nag => {
     nag.sun && 7,
   ];
 
-  return dayNums.every(el => el === false) || dayNums.includes(moment().isoWeekday());
+  return dayNums.every(el => !el) || dayNums.includes(moment().isoWeekday());
 };
 
 // https://stackoverflow.com/questions/11038252/how-can-i-calculate-the-difference-between-two-times-that-are-in-24-hour-format
@@ -92,12 +92,12 @@ const timeDiff = timeStr => {
 };
 
 const isTimeForNag = (nag, snoozed = false) => {
-  console.log('in isTimeForNag:', moment().hours() + ':' + moment().minutes());
+  //console.log('in isTimeForNag:', moment().hours() + ':' + moment().minutes());
   const minutesSinceStart = timeDiff(nag.startTime);
-  console.log('minutesSinceStart', minutesSinceStart);
+  //console.log('minutesSinceStart', minutesSinceStart);
   const minutesTilEnd = nag.endTime ? -timeDiff(nag.endTime) : 0;
-  console.log('minutesTilEnd', minutesTilEnd);
-  console.log('isDayOfWeek(nag)', isDayOfWeek(nag));
+  //console.log('minutesTilEnd', minutesTilEnd);
+  //console.log('isDayOfWeek(nag)', isDayOfWeek(nag));
   return (                                                  // return true if:
     !snoozed                                              // nag is not snoozed
     && minutesSinceStart >= 0                              // and it is after start time
@@ -115,7 +115,7 @@ const isTimeForNag = (nag, snoozed = false) => {
 const sendNags = async() => {
   // console.log('sendNags');
   const allNags = await getAllNags();
-  console.log('in send nags:', moment().hours() + ':' + moment().minutes());
+  //console.log('in send nags:', moment().hours() + ':' + moment().minutes());
   const nagsToSend = [];
   allNags.forEach(nag => {
     if(!nag.complete
