@@ -40,7 +40,7 @@ const getAllNags = async() => {
             complete,
             id_string AS "idString",
             users.id AS "userId",
-            push_api_key AS "pushApiKey"
+            push_api_receive AS "pushApiKey"
             FROM users JOIN nags
             ON users.id = nags.user_id;
         `,);
@@ -207,8 +207,8 @@ const umbrellaCheck = async() => {
     const umbrellaNags = await rainIds();
     umbrellaNags.forEach(async nag => {
       if(
-        nag.push_api_key
-        && nag.push_api_key.length === 30) {
+        nag.push_api_receive
+        && nag.push_api_receive.length === 30) {
         try {
           const url = 'https://api.pushover.net/1/messages.json';
           return await fetchWithError(url, {
@@ -219,7 +219,7 @@ const umbrellaCheck = async() => {
             //url: `https://nagmeapp.com/api/complete/${nag.user_id}`,
             body: JSON.stringify({
               token: process.env.PUSHOVER_TOKEN,
-              user: nag.push_api_key,
+              user: nag.push_api_receive,
               message: 'Greater Than 40% chance of rain',
               url: `https://nagmeapp.com/api/complete/${nag.user_id}`,
               url_title: 'CLICK HERE MARK COMPLETE'

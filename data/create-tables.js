@@ -1,16 +1,17 @@
 const client = require('../lib/client');
 
 ( //IIFE
-    async() => {
-        try {
-            // run a query to create tables
-            await client.query(`
+  async() => {
+    try {
+      // run a query to create tables
+      await client.query(`
                 CREATE TABLE users (
                     id SERIAL PRIMARY KEY NOT NULL,
                     email VARCHAR(256) NOT NULL,
                     display_name VARCHAR(256) NOT NULL,
                     password_hash VARCHAR(512) NOT NULL,
-                    push_api_key VARCHAR(256),
+                    push_api_send VARCHAR(256),
+                    push_api_receive VARCHAR(256),
                     email_to_SMS VARCHAR(256),
                     alert_email VARCHAR(256)
                 );
@@ -38,9 +39,9 @@ const client = require('../lib/client');
                     user_id INT NOT NULL REFERENCES users(id)
                 );
             `);
-            console.log('create tables complete');
-        }
-        catch (err) { console.log(err); }
-        finally { client.end(); }
+      console.log('create tables complete'); //eslint-disable-line no-console
     }
+    catch(err) { console.log(err); }
+    finally { client.end(); }
+  }
 )();

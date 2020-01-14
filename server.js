@@ -37,9 +37,9 @@ const
     },
     insertUser(user, hash) {
       return client.query(`
-            INSERT into users (push_api_key, email, password_hash, display_name)
+            INSERT into users (push_api_receive, email, password_hash, display_name)
             VALUES ($1, $2, $3, $4)
-            RETURNING id, push_api_key as "pushApiKey", email, display_name as "displayName";
+            RETURNING id, push_api_receive as "pushApiKey", email, display_name as "displayName";
         `,
       [user.pushApiKey, user.email, hash, user.displayName]
       ).then(result => result.rows[0]);
