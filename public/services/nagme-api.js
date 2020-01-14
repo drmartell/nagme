@@ -57,7 +57,7 @@ export const getNags = () => {
   return fetchWithError(url);
 };
 
-export const getNagById = (id) => {
+export const getNagById = id => {
   const url = `${URL}/nags/${id}`;
   return fetchWithError(url);
 };

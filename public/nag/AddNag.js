@@ -1,16 +1,17 @@
 import Component from '../Component.js';
+import { getNagById } from '../services/nagme-api.js';
 
 class AddNag extends Component {
 
   onRender(form) {
     const { onAdd, onRemove, loadNag } = this.props;
     const myTextArea = form.querySelector('textarea');
-    loadNag && (myTextArea.value = loadNag.notes);
+    if(loadNag) myTextArea.value = loadNag.notes;
 
     form.addEventListener('submit', async event => {
       event.preventDefault();
 
-      const formData = new FormData(form);//add or update
+      const formData = new FormData(form); //add or update
 
       const nag = {
         id: formData.get('hidden-id'),
@@ -52,7 +53,13 @@ class AddNag extends Component {
   }
 
   renderHTML() {
-    const loadNag = this.props.loadNag; 
+    const { loadNag } = this.props;
+
+    let decryptedNag = loadNag;
+    (async() => {
+      if(loadNag) decryptedNag = await getNagById(loadNag.id);
+    })();
+
     return /*html*/`
             <form class="add-nag-form">
                 <div class = "add-nag-div">
@@ -63,7 +70,7 @@ class AddNag extends Component {
                             id="nag-name"
                             name="nag-name"
                             placeholder="Add Nag Name"
-                            value="${loadNag ? loadNag.task : ''}"
+                            value="${loadNag ? decryptedNag.task : ''}"
                             required>
                     </p>
                     <br>
@@ -73,7 +80,7 @@ class AddNag extends Component {
                             id="notes"
                             name="notes"
 
-                            value="${loadNag ? loadNag.notes : ''}"
+                            value="${loadNag ? decryptedNag.notes : ''}"
 
                             placeholder="Add Notes"></textarea>
                     </p>
