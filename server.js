@@ -234,12 +234,5 @@ new Cron('0 45 7 * * *', umbrellaCheck, null, true, 'America/Los_Angeles');
 if(typeof(PhusionPassenger) !== 'undefined') {
   app.listen('passenger');
 } else {
-  app.listen(PORT, () => {
-    console.log('server running on PORT', PORT); // eslint-disable-line no-console
-  });
+  app.listen(PORT, () => console.log('server running on PORT', PORT)); // eslint-disable-line no-console
 }
-
-// listen for cron
-app.listen('3128', () => {
-  console.log('cron listening on 3128'); // eslint-disable-line no-console
-});
