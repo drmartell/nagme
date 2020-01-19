@@ -38,8 +38,8 @@ const
     insertUser(user, hash) {
       return client.query(`
             INSERT into users (push_api_receive, push_api_send, email, password_hash, display_name)
-            VALUES ($1, $2, $3, $4)
-            RETURNING id, push_api_receive as "pushApiKey", push_app_send as "pushAppKey", email, display_name as "displayName";
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING id, push_api_receive as "pushApiKey", push_api_send as "pushAppKey", email, display_name as "displayName";
         `,
       [user.pushApiKey, user.pushAppKey, user.email, hash, user.displayName]
       ).then(result => result.rows[0]);

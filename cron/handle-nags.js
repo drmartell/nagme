@@ -40,7 +40,8 @@ const getAllNags = async() => {
             id_string AS "idString",
             users.id AS "userId",
             push_api_receive AS "pushApiKey",
-            push_api_send AS "pushAppKey"
+            push_api_send AS "pushAppKey",
+            pushover_device_name AS "deviceName"
             FROM users JOIN nags
             ON users.id = nags.user_id
             ORDER BY nags.id;
@@ -86,7 +87,7 @@ const isTimeForNag = (nag, snoozed = false) => {
   return (
     !snoozed
     && minutesSinceStart >= 0
-    && moment().minutes() % 1 === 0
+    && moment().minutes() % 5 === 0
     && (nag.endTime ? minutesTilEnd > 0 : true)
     && isDayOfWeek(nag)
     && (
@@ -97,11 +98,11 @@ const isTimeForNag = (nag, snoozed = false) => {
   );
 };
 
-
 const sendNags = async() => {
   let allNags;
   try {
     allNags = await getAllNags();
+    console.log('allNags', allNags);
   }
   catch(err) { console.log; } // eslint-disable-line no-console
 
@@ -118,11 +119,12 @@ const sendNags = async() => {
   const messagesObj = nagsToSend.reduce((acc, cur) => {
     const html = `${cur.task}: ${cur.notes}  <a href="https://nagmeapp.com/api/${cur.recurs ? 'complete' : 'delete'}/${cur.completeId}">☑</a>\n\n`;
     acc[cur.pushApiKey] ?
-      acc[cur.pushApiKey][1] += html :
-      acc[cur.pushApiKey] = [cur.pushAppKey, html];
+      acc[cur.pushApiKey][2] += html :
+      acc[cur.pushApiKey] = [cur.pushAppKey, cur.deviceName, html];
     return acc;
   }, {});
 
+  
   Object.entries(messagesObj).forEach(async message => {
     try {
       console.log('sending'); //eslint-disable-line no-console
@@ -131,10 +133,11 @@ const sendNags = async() => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          token: message[1][0],
-          html: 1,
           user: message[0],
-          message: message[1][1]
+          token: message[1][0],
+          device: message[1][1],
+          message: message[1][2],
+          html: 1
         })
       });
     }
@@ -155,7 +158,7 @@ const updateRecurNags = async() => {
   catch(err) {
     console.log(err); // eslint-disable-line no-console
   }
-}; 
+};
 
 const rainIds = async() => {
   try {
