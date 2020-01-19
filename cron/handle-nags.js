@@ -102,7 +102,6 @@ const sendNags = async() => {
   let allNags;
   try {
     allNags = await getAllNags();
-    console.log('allNags', allNags);
   }
   catch(err) { console.log; } // eslint-disable-line no-console
 
