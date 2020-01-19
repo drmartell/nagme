@@ -6,22 +6,8 @@ class NagItem extends Component {
   onRender(dom) {
 
     const { nag, onRemove } = this.props;
-    // removed onUpdate
-    // const checkbox = dom.querySelector('.checkbox');
-    // checkbox.addEventListener('click', () => {
-    //     nag.complete = !nag.complete;
-    //     onUpdate(nag);
-    // });
-
-    // const nagDetailsButton = dom.querySelector('.details-button');
-    // nagDetailsButton.addEventListener('click', () => { const { nag } = this.props;
-    //     const json = JSON.stringify(nag, true, 4);
-    //     console.log(json);
-    //     window.location = `details.html?id=${nag.id}`;
-    // });
 
     const removeSpan = dom.querySelector('.delete-button');
-    //const removeNag = document.getElementById('${nag.id}');
     removeSpan.addEventListener('click', () => {
       confirm('Are you sure you want to remove this task?') &&
             onRemove(nag);
@@ -41,7 +27,6 @@ class NagItem extends Component {
 
     let decryptedNag = nag;
     (async() => decryptedNag = await getNagById(nag.id))();
-    console.log('decryptedNag', decryptedNag);
     return /*html*/`
             <li id="${nag.id}">
                 <p>

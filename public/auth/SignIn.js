@@ -2,25 +2,25 @@ import Component from '../Component.js';
 
 class SignIn extends Component {
 
-    onRender(form) {
-        const onSignIn = this.props.onSignIn;
+  onRender(form) {
+    const onSignIn = this.props.onSignIn;
 
-        form.addEventListener('submit', event => {
-            event.preventDefault();
+    form.addEventListener('submit', event => {
+      event.preventDefault();
 
-            const formData = new FormData(form);
+      const formData = new FormData(form);
 
-            const credentials = {
-                email: formData.get('email'),
-                password: formData.get('password')
-            };
+      const credentials = {
+        email: formData.get('email'),
+        password: formData.get('password')
+      };
 
-            onSignIn(credentials);
-        });
-    }
+      onSignIn(credentials);
+    });
+  }
 
-    renderHTML() {
-        return /*html*/`
+  renderHTML() {
+    return /*html*/`
             <form class="auth-form standard">
             
         
@@ -40,7 +40,7 @@ class SignIn extends Component {
                 <br>
             </form>
         `;
-    }
+  }
 }
 
 export default SignIn;

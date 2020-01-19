@@ -1,6 +1,5 @@
 const URL = '/api';
 
-//const token = localStorage.getItem('TOKEN');
 const user = JSON.parse(localStorage.getItem('USER'));
 const token = user && user.token;
 
