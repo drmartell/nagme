@@ -28,7 +28,7 @@ const
   authRoutes = createAuthRoutes({
     selectUser(email) {
       return client.query(`
-            SELECT id, email, password_hash, display_name as "displayName" 
+            SELECT id, push_api_send, email, password_hash, display_name as "displayName" 
             FROM users
             WHERE email = $1;
         `,
@@ -37,11 +37,11 @@ const
     },
     insertUser(user, hash) {
       return client.query(`
-            INSERT into users (push_api_receive, email, password_hash, display_name)
+            INSERT into users (push_api_receive, push_api_send, email, password_hash, display_name)
             VALUES ($1, $2, $3, $4)
-            RETURNING id, push_api_receive as "pushApiKey", email, display_name as "displayName";
+            RETURNING id, push_api_receive as "pushApiKey", push_app_send as "pushAppKey", email, display_name as "displayName";
         `,
-      [user.pushApiKey, user.email, hash, user.displayName]
+      [user.pushApiKey, user.pushAppKey, user.email, hash, user.displayName]
       ).then(result => result.rows[0]);
     }
   });
@@ -231,8 +231,7 @@ new Cron('0 45 7 * * *', umbrellaCheck, null, true, 'America/Los_Angeles');
 // this is specific to deployment on linux/cPanel/Phusion host
 // https://www.phusionpassenger.com/library/indepth/nodejs/reverse_port_binding.html
 // start UI server
-if(typeof(PhusionPassenger) !== 'undefined') {
+if(typeof(PhusionPassenger) !== 'undefined')
   app.listen('passenger');
-} else {
+else
   app.listen(PORT, () => console.log('server running on PORT', PORT)); // eslint-disable-line no-console
-}

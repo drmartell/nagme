@@ -2,27 +2,28 @@ import Component from '../Component.js';
 
 class SignUp extends Component {
 
-    onRender(form) {
-        const onSignUp = this.props.onSignUp;
+  onRender(form) {
+    const onSignUp = this.props.onSignUp;
 
-        form.addEventListener('submit', event => {
-            event.preventDefault();
+    form.addEventListener('submit', event => {
+      event.preventDefault();
 
-            const formData = new FormData(form);
+      const formData = new FormData(form);
 
-            const user = {
-                displayName: formData.get('name'),
-                email: formData.get('email'),
-                password: formData.get('password'),
-                pushApiKey: formData.get('push-api-key')
-            };
+      const user = {
+        displayName: formData.get('name'),
+        email: formData.get('email'),
+        password: formData.get('password'),
+        pushApiKey: formData.get('push-api-key'),
+        pushAppKey: formData.get('push-app-key')
+      };
 
-            onSignUp(user);
-        });
-    }
+      onSignUp(user);
+    });
+  }
 
-    renderHTML() {
-        return /*html*/`
+  renderHTML() {
+    return /*html*/`
             <form class="auth-form standard">
                 <p>
                     <label for="name">Name</label>
@@ -41,7 +42,11 @@ class SignUp extends Component {
                 <br>
                 <p>
                     <label for="api-auth">Pushover API User Key</label>
-                    <input id="push-api-key" type="text" name="push-api-key" required placeholder="API User key supplied by pushover">
+                    <input id="push-api-key" type="text" name="push-api-key" required placeholder="API User key">
+                </p>
+                <p>
+                    <label for="api-auth">Pushover API App Key</label>
+                    <input id="push-api-key" type="text" name="push-app-key" required placeholder="API App key">
                 </p>
                 <br>
                 <p>
@@ -49,7 +54,7 @@ class SignUp extends Component {
                 </p>
             </form>
         `;
-    }
+  }
 }
 
 export default SignUp;

@@ -4,7 +4,6 @@ const moment = require('moment');
 
 const fetch = require('node-fetch');
 const superagent = require('superagent');
-require('dotenv').config();
 
 const Cryptr = require('cryptr');
 const cryptr = new Cryptr(process.env.CRYPTR_KEY);
@@ -40,27 +39,17 @@ const getAllNags = async() => {
             complete,
             id_string AS "idString",
             users.id AS "userId",
-            push_api_receive AS "pushApiKey"
+            push_api_receive AS "pushApiKey",
+            push_api_send AS "pushAppKey"
             FROM users JOIN nags
-            ON users.id = nags.user_id;
+            ON users.id = nags.user_id
+            ORDER BY nags.id;
         `,);
     return result.rows.map(row =>
       ({ ...row, task: cryptr.decrypt(row.task), notes: cryptr.decrypt(row.notes) }));
   }
   catch(err) { console.log(err); } // eslint-disable-line no-console
 };
-
-// 1-7 where 1 is Monday and 7 is Sunday
-// days are true by default
-// const dayOfWeekDict = {
-//   1: mon,
-//   2: tue,
-//   3: wed,
-//   4: thu,
-//   5: fri,
-//   6: sat,
-//   7: sun
-// };
 
 const isDayOfWeek = nag => {
   const dayNums = [
@@ -80,8 +69,7 @@ const isDayOfWeek = nag => {
 // https://stackoverflow.com/questions/1531093/how-do-i-get-the-current-date-in-javascript
 const timeDiff = timeStr => {
   const now = new Date();
-  // adjust to Pacific time
-  now.setHours(now.getHours() - 1);
+  /* adjust to Pacific time */ now.setHours(now.getHours() - 1);
   const dd = String(now.getDate()).padStart(2, '0');
   const mm = String(now.getMonth() + 1).padStart(2, '0'); //January is 0
   const yyyy = now.getFullYear();
@@ -92,51 +80,48 @@ const timeDiff = timeStr => {
 };
 
 const isTimeForNag = (nag, snoozed = false) => {
-  console.log('in isTimeForNag:', moment().hours() + ':' + moment().minutes());
   const minutesSinceStart = timeDiff(nag.startTime);
-  console.log('minutesSinceStart', minutesSinceStart);
   const minutesTilEnd = nag.endTime ? -timeDiff(nag.endTime) : 0;
-  console.log('minutesTilEnd', minutesTilEnd);
-  console.log('isDayOfWeek(nag)', isDayOfWeek(nag));
-  return (                                                  // return true if:
-    !snoozed                                              // nag is not snoozed
-    && minutesSinceStart >= 0                              // and it is after start time
-    && moment().minutes() % 5 === 0                        // only allow nags at most every 5 minutes
-    && (nag.endTime ? minutesTilEnd > 0 : true)           // and if there is an end time and we haven't exceeded it
-    && isDayOfWeek(nag)                                   // and there are days selected and this is one of them   
+
+  return (
+    !snoozed
+    && minutesSinceStart >= 0
+    && moment().minutes() % 1 === 0
+    && (nag.endTime ? minutesTilEnd > 0 : true)
+    && isDayOfWeek(nag)
     && (
       minutesSinceStart === 0 ||
-      minutesSinceStart % nag.interval === 0 ||         // and this is one of the regularly recurring time intervals of a requested nag
-      (nag.minutesAfterTheHour && (moment().minutes() === nag.minutesAfterTheHour))    // or it is one of the number of minutes after the hour
+      minutesSinceStart % nag.interval === 0 ||
+      Boolean(nag.minutesAfterTheHour && moment().minutes() === nag.minutesAfterTheHour)
     )
   );
 };
 
+
 const sendNags = async() => {
-  // console.log('sendNags');
-  const allNags = await getAllNags();
-  console.log('in send nags:', moment().hours() + ':' + moment().minutes());
+  let allNags;
+  try {
+    allNags = await getAllNags();
+  }
+  catch(err) { console.log; } // eslint-disable-line no-console
+
   const nagsToSend = [];
   allNags.forEach(nag => {
     if(!nag.complete
       && nag.pushApiKey
       && nag.pushApiKey.length === 30
-      //&& (console.log('checking isTimeForNag'))
       && isTimeForNag(nag)) {
       nagsToSend.push(nag);
     }
   });
   
-  // combine simultaneous nags
   const messagesObj = nagsToSend.reduce((acc, cur) => {
     const html = `${cur.task}: ${cur.notes}  <a href="https://nagmeapp.com/api/${cur.recurs ? 'complete' : 'delete'}/${cur.completeId}">☑</a>\n\n`;
-    acc[cur.pushApiKey] ? 
-      acc[cur.pushApiKey] += html :
-      acc[cur.pushApiKey] = html;
+    acc[cur.pushApiKey] ?
+      acc[cur.pushApiKey][1] += html :
+      acc[cur.pushApiKey] = [cur.pushAppKey, html];
     return acc;
   }, {});
-
-  //WILL NEED FURTHER LOGIC ONCE RECEIVING DEVICES CAN BE TARGETED
 
   Object.entries(messagesObj).forEach(async message => {
     try {
@@ -146,10 +131,10 @@ const sendNags = async() => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          token: process.env.PUSHOVER_TOKEN,
+          token: message[1][0],
           html: 1,
           user: message[0],
-          message: message[1]
+          message: message[1][1]
         })
       });
     }
@@ -202,7 +187,7 @@ const umbrellaCheck = async() => {
   {
     console.log(err); // eslint-disable-line no-console
   }
-  // Is the probability for rain greater than 40%?
+
   if(rainProbability > .4){
     const umbrellaNags = await rainIds();
     umbrellaNags.forEach(async nag => {
