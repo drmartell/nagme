@@ -81,6 +81,7 @@ const timeDiff = timeStr => {
 };
 
 const isTimeForNag = (nag, snoozed = false) => {
+  console.log('isTimeForNag');
   const minutesSinceStart = timeDiff(nag.startTime);
   const minutesTilEnd = nag.endTime ? -timeDiff(nag.endTime) : 0;
 
@@ -115,27 +116,28 @@ const sendNags = async() => {
     }
   });
   
-  const messagesObj = nagsToSend.reduce((acc, cur) => {
-    const html = `${cur.task}: ${cur.notes}  <a href="https://nagmeapp.com/api/${cur.recurs ? 'complete' : 'delete'}/${cur.completeId}">☑</a>\n\n`;
-    acc[cur.pushApiKey] ?
-      acc[cur.pushApiKey][2] += html :
-      acc[cur.pushApiKey] = [cur.pushAppKey, cur.deviceName, html];
+  const messagesObj = nagsToSend.reduce((acc, { task, notes, recurs, completeId, pushApiKey, pushAppKey, deviceName }) => {
+    const html = `${task}: ${notes}  <a href="https://nagmeapp.com/api/${recurs ? 'complete' : 'delete'}/${completeId}">☑</a>\n\n`;
+    acc[pushApiKey] ?
+      acc[pushApiKey][2] += html :
+      acc[pushApiKey] = [pushAppKey, deviceName, html];
     return acc;
   }, {});
 
   
-  Object.entries(messagesObj).forEach(async message => {
+  Object.entries(messagesObj).forEach(async messageArr => {
+    const [user, [token, device, message]] = messageArr;
     try {
-      console.log('sending'); //eslint-disable-line no-console
+      console.log('sending', message); //eslint-disable-line no-console
       const url = 'https://api.pushover.net/1/messages.json';
       return await fetchWithError(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user: message[0],
-          token: message[1][0],
-          device: message[1][1],
-          message: message[1][2],
+          user,
+          token,
+          device,
+          message,
           html: 1
         })
       });
