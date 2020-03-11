@@ -62,7 +62,6 @@ export const getNagById = id => {
 };
 
 export const addNag = nag => {
-  console.log('addNag', nag); // eslint-disable-line no-console
   const url = `${URL}/nags`;
   return fetchWithError(url, {
     method: 'POST',

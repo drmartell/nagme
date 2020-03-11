@@ -5,20 +5,21 @@ class NagItem extends Component {
 
   onRender(dom) {
 
-    const { nag, onRemove } = this.props;
+    const { nag, onRemove, onAdd, onAnyClick } = this.props;
 
     const removeSpan = dom.querySelector('.delete-button');
     removeSpan.addEventListener('click', () => {
-      confirm('Are you sure you want to remove this task?') &&
-            onRemove(nag);
-        
+      confirm('Are you sure you want to remove this task?') && onRemove(nag);
+    });
+
+    const duplicateSpan = dom.querySelector('.duplicate-button');
+    duplicateSpan.addEventListener('click', () => {
+      confirm('Are you sure you want to duplicate this task?') && onAdd(nag);
     });
 
     const updateButtons = dom.querySelectorAll('.update-button');
     updateButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        this.props.onAnyClick(nag);
-      });
+      button.addEventListener('click', () => onAnyClick(nag));
     });
   }
 
@@ -34,6 +35,7 @@ class NagItem extends Component {
                     <!-- <span class="task-span${nag.complete && '-strikethrough'}">${decryptedNag.task}</span> -->
                     <span class="task-span">${decryptedNag.task}</span><br class="mobile">
                     <span class="close"><button class="update-button">Edit</button></span><br class="mobile">
+                    <span class="close"><button class='duplicate-button'>Duplicate</button></span>
                     <span class="close"><button class='delete-button'>Delete</button></span>
                 </p>
                 <p class="notes-span" hidden>${decryptedNag.notes}</p>

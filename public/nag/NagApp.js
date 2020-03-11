@@ -72,14 +72,14 @@ class NagApp extends Component {
         finally {
           loading.update({ loading: false });
         }
-      }
+      },
     });
     main.appendChild(addNagSection.renderDOM());
 
     const nagList = new NagList({ 
       nags: [],
 
-      onAnyClick: (nag) => {
+      onAnyClick: nag => {
         addNagSection.update({ loadNag:nag });
       },
 
@@ -110,7 +110,34 @@ class NagApp extends Component {
       //         loading.update({ loading: false });
       //     }
       // },
-            
+
+      onAdd: async nag => {
+        loading.update({ loading: true });
+        // clear prior error
+        error.textContent = '';
+
+        try {
+          // part 1: do work on the server
+          const saved = await addNag(nag);
+                    
+          // part 2: integrate back into our list
+          const { nags } = this.state;
+          nags.push(saved);
+
+          // part 3: tell component to update
+          nagList.update({ nags });
+        }
+        catch(err) {
+          // display error
+          error.textContent = err;
+          // rethrow the error so form knows not to clear the input:
+          throw err;
+        }
+        finally {
+          loading.update({ loading: false });
+        }
+      },
+
       onRemove: async nag => {
         loading.update({ loading: true });
         // clear prior error
